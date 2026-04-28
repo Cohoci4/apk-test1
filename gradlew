@@ -32,7 +32,9 @@ if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/bin/java" ] ; then
         JAVACMD="$JAVA_HOME/bin/java"
     else
-        JAVACMD="$JAVA_HOME/bin/java"
+        echo "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME" >&2
+        echo "Please set JAVA_HOME to a valid JDK installation." >&2
+        exit 1
     fi
 else
     JAVACMD="java"

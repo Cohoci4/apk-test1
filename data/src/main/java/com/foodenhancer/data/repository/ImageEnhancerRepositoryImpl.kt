@@ -29,11 +29,11 @@ class ImageEnhancerRepositoryImpl @Inject constructor(
             )
             val stylePart = styleId.toRequestBody("text/plain".toMediaTypeOrNull())
 
-            // Stub: return placeholder instead of calling actual API
+            // Stub: return placeholder asset URI instead of calling actual API
             Result.success(
                 ProcessingResult(
-                    resultUri = "https://placeholder.foodenhancer.com/result.jpg",
-                    thumbnailUri = "https://placeholder.foodenhancer.com/thumb.jpg"
+                    resultUri = "file:///android_asset/sample_processed.jpg",
+                    thumbnailUri = "file:///android_asset/sample_processed.jpg"
                 )
             )
         } catch (e: Exception) {

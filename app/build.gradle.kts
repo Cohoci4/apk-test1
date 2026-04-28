@@ -53,10 +53,33 @@ dependencies {
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.animation:animation")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // AndroidX
     implementation("androidx.core:core-ktx:${Versions.coreKtx}")
     implementation("androidx.activity:activity-compose:${Versions.activityCompose}")
+
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:${Versions.navigationCompose}")
+    implementation("androidx.hilt:hilt-navigation-compose:${Versions.hiltNavigationCompose}")
+
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:${Versions.lifecycle}")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:${Versions.lifecycle}")
+
+    // CameraX
+    implementation("androidx.camera:camera-core:${Versions.cameraX}")
+    implementation("androidx.camera:camera-camera2:${Versions.cameraX}")
+    implementation("androidx.camera:camera-lifecycle:${Versions.cameraX}")
+    implementation("androidx.camera:camera-view:${Versions.cameraX}")
+
+    // Coil
+    implementation("io.coil-kt:coil-compose:${Versions.coil}")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.coroutines}")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.coroutines}")
 }

@@ -43,4 +43,8 @@ object Versions {
     const val coreKtx = "1.12.0"
     const val activityCompose = "1.8.2"
     const val lifecycle = "2.7.0"
+
+    // Navigation
+    const val navigationCompose = "2.7.7"
+    const val hiltNavigationCompose = "1.1.0"
 }
