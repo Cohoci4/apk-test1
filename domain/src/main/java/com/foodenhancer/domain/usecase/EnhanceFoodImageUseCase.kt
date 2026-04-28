@@ -12,7 +12,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class EnhanceFoodImageUseCase @Inject constructor(
     private val segmentationRepository: ImageSegmentationRepository,
     private val enhancerRepository: ImageEnhancerRepository,
