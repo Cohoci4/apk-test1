@@ -7,23 +7,27 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foodenhancer.domain.model.EnhancementStyle
+import com.foodenhancer.domain.model.StyleCategory
+import com.foodenhancer.domain.repository.StyleRepository
 import com.foodenhancer.domain.usecase.EnhanceFoodImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
-data class StyleItem(
-    val id: String,
-    val name: String,
-    val description: String,
-    val color: Long
+data class CategoryWithStyles(
+    val category: StyleCategory,
+    val styles: List<EnhancementStyle>
 )
 
 data class StylePickerUiState(
@@ -39,6 +43,7 @@ data class StylePickerUiState(
 class StylePickerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val enhanceFoodImageUseCase: EnhanceFoodImageUseCase,
+    private val styleRepository: StyleRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -47,21 +52,61 @@ class StylePickerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StylePickerUiState())
     val uiState: StateFlow<StylePickerUiState> = _uiState.asStateFlow()
 
-    val styles = listOf(
-        StyleItem("rustic", "Rustic", "Wooden table", 0xFF8B4513),
-        StyleItem("minimal", "Minimal", "Clean white", 0xFFE0E0E0),
-        StyleItem("italian", "Italian Evening", "Candlelight", 0xFFFFB347),
-        StyleItem("pop_art", "Pop Art", "Bright colors", 0xFFFF1493),
-        StyleItem("dark_mood", "Dark Mood", "Gourmet dark", 0xFF2C2C2C)
-    )
+    private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
+
+    val categoriesWithStyles: StateFlow<List<CategoryWithStyles>> =
+        combine(
+            styleRepository.getCategories(),
+            styleRepository.getAllStyles(),
+            styleRepository.getFavoriteStyles()
+        ) { categories, allStyles, favoriteStyles ->
+            val result = mutableListOf<CategoryWithStyles>()
+
+            if (favoriteStyles.isNotEmpty()) {
+                val favCategory = categories.find { it.id == "favorites" }
+                    ?: StyleCategory("favorites", "Favorites", 0)
+                result.add(CategoryWithStyles(favCategory, favoriteStyles))
+            }
+
+            categories
+                .filter { it.id != "favorites" }
+                .sortedBy { it.displayOrder }
+                .forEach { category ->
+                    val styles = allStyles.filter { it.categoryId == category.id }
+                    if (styles.isNotEmpty()) {
+                        result.add(CategoryWithStyles(category, styles))
+                    }
+                }
+            result
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val favoriteIds: StateFlow<Set<String>> = _favoriteIds.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            styleRepository.getFavoriteStyles().collect { favStyles ->
+                _favoriteIds.value = favStyles.map { it.id }.toSet()
+            }
+        }
+    }
 
     fun selectStyle(styleId: String) {
         _uiState.value = _uiState.value.copy(selectedStyleId = styleId)
     }
 
+    fun toggleFavorite(styleId: String) {
+        viewModelScope.launch {
+            styleRepository.toggleFavorite(styleId)
+        }
+    }
+
     fun onEnhance() {
         val selectedId = _uiState.value.selectedStyleId ?: return
-        val styleName = styles.find { it.id == selectedId }?.name ?: return
+
+        val allCategories = categoriesWithStyles.value
+        val styleName = allCategories
+            .flatMap { it.styles }
+            .find { it.id == selectedId }?.name ?: return
 
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
@@ -132,6 +177,7 @@ class StylePickerViewModel @Inject constructor(
 
                 val outputStream = ByteArrayOutputStream()
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                bitmap.recycle()
                 outputStream.toByteArray()
             } catch (_: Exception) {
                 null

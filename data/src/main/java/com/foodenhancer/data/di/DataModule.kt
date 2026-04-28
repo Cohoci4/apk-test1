@@ -4,12 +4,14 @@ import com.foodenhancer.data.repository.BillingRepositoryImpl
 import com.foodenhancer.data.repository.HistoryRepositoryImpl
 import com.foodenhancer.data.repository.ImageEnhancerRepositoryImpl
 import com.foodenhancer.data.repository.ImageSegmentationRepositoryImpl
+import com.foodenhancer.data.repository.StyleRepositoryImpl
 import com.foodenhancer.data.repository.SubscriptionRepositoryImpl
 import com.foodenhancer.data.repository.WatermarkApplierImpl
 import com.foodenhancer.domain.repository.BillingRepository
 import com.foodenhancer.domain.repository.HistoryRepository
 import com.foodenhancer.domain.repository.ImageEnhancerRepository
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
+import com.foodenhancer.domain.repository.StyleRepository
 import com.foodenhancer.domain.repository.SubscriptionRepository
 import com.foodenhancer.domain.repository.WatermarkApplier
 import dagger.Binds
@@ -57,4 +59,10 @@ abstract class DataModule {
     abstract fun bindWatermarkApplier(
         impl: WatermarkApplierImpl
     ): WatermarkApplier
+
+    @Binds
+    @Singleton
+    abstract fun bindStyleRepository(
+        impl: StyleRepositoryImpl
+    ): StyleRepository
 }

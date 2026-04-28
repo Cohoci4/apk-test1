@@ -43,10 +43,12 @@ class WatermarkApplierImpl @Inject constructor(
             }
 
             val watermarked = WatermarkUtil.applyWatermark(bitmap)
+            bitmap.recycle()
             val outputFile = File(context.cacheDir, "watermarked_${UUID.randomUUID()}.jpg")
             FileOutputStream(outputFile).use { fos ->
                 watermarked.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, fos)
             }
+            watermarked.recycle()
             outputFile.absolutePath
         }
     }

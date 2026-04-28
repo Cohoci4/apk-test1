@@ -20,9 +20,11 @@ class ImageSegmentationRepositoryImpl @Inject constructor(
                     ?: return@withContext Result.failure(Exception("Failed to decode image"))
 
                 val maskBitmap = foodSegmenter.segment(bitmap)
+                bitmap.recycle()
 
                 val outputStream = ByteArrayOutputStream()
                 maskBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                maskBitmap.recycle()
                 Result.success(outputStream.toByteArray())
             } catch (e: Exception) {
                 Result.failure(e)

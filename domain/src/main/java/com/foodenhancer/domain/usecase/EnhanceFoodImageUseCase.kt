@@ -6,6 +6,7 @@ import com.foodenhancer.domain.model.ProcessingResult
 import com.foodenhancer.domain.repository.HistoryRepository
 import com.foodenhancer.domain.repository.ImageEnhancerRepository
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
+import com.foodenhancer.domain.repository.StyleRepository
 import com.foodenhancer.domain.repository.SubscriptionRepository
 import com.foodenhancer.domain.repository.WatermarkApplier
 import kotlinx.coroutines.flow.first
@@ -21,7 +22,8 @@ class EnhanceFoodImageUseCase @Inject constructor(
     private val enhancerRepository: ImageEnhancerRepository,
     private val historyRepository: HistoryRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val watermarkApplier: WatermarkApplier
+    private val watermarkApplier: WatermarkApplier,
+    private val styleRepository: StyleRepository
 ) {
     private val demoMutex = Mutex()
 
@@ -37,7 +39,6 @@ class EnhanceFoodImageUseCase @Inject constructor(
                 if (remaining <= 0) {
                     return Result.failure(IllegalStateException("Demo limit exceeded. Please upgrade to Pro."))
                 }
-                subscriptionRepository.decrementDemo()
             }
         }
 
@@ -52,6 +53,12 @@ class EnhanceFoodImageUseCase @Inject constructor(
             return Result.failure(enhanceResult.exceptionOrNull() ?: Exception("Enhancement failed"))
         }
         val result = enhanceResult.getOrThrow()
+
+        if (!isPro) {
+            demoMutex.withLock {
+                subscriptionRepository.decrementDemo()
+            }
+        }
 
         // Apply watermark for non-Pro users
         val finalUri = if (!isPro) {
@@ -68,7 +75,8 @@ class EnhanceFoodImageUseCase @Inject constructor(
             id = UUID.randomUUID().toString(),
             originalUri = imageUri,
             processedUri = finalUri,
-            style = EnhancementStyle.ALL.find { it.id == styleId },
+            style = styleRepository.getAllStyles().first().find { it.id == styleId }
+                ?: EnhancementStyle.ALL.find { it.id == styleId },
             createdAt = System.currentTimeMillis()
         )
         historyRepository.save(foodImage)
