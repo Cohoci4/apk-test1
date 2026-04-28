@@ -120,11 +120,12 @@ class ImageSegmenter(private val context: Context) {
 
     private fun loadModel(): MappedByteBuffer {
         val assetFileDescriptor = context.assets.openFd("model.tflite")
-        val inputStream = FileInputStream(assetFileDescriptor.fileDescriptor)
-        val fileChannel = inputStream.channel
-        val startOffset = assetFileDescriptor.startOffset
-        val declaredLength = assetFileDescriptor.declaredLength
-        return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
+        return assetFileDescriptor.use { afd ->
+            FileInputStream(afd.fileDescriptor).use { inputStream ->
+                val fileChannel = inputStream.channel
+                fileChannel.map(FileChannel.MapMode.READ_ONLY, afd.startOffset, afd.declaredLength)
+            }
+        }
     }
 
     fun close() {
