@@ -6,12 +6,12 @@ data class EnhancementStyle(
     val previewUrl: String
 ) {
     companion object {
-        val VIBRANT = EnhancementStyle("vibrant", "Vibrant", "https://styles.foodenhancer.com/vibrant.jpg")
-        val WARM = EnhancementStyle("warm", "Warm Tones", "https://styles.foodenhancer.com/warm.jpg")
-        val COOL = EnhancementStyle("cool", "Cool Tones", "https://styles.foodenhancer.com/cool.jpg")
-        val DRAMATIC = EnhancementStyle("dramatic", "Dramatic", "https://styles.foodenhancer.com/dramatic.jpg")
-        val NATURAL = EnhancementStyle("natural", "Natural", "https://styles.foodenhancer.com/natural.jpg")
+        val RUSTIC = EnhancementStyle("rustic", "Rustic", "https://styles.foodenhancer.com/rustic.jpg")
+        val MINIMAL = EnhancementStyle("minimal", "Minimal", "https://styles.foodenhancer.com/minimal.jpg")
+        val ITALIAN = EnhancementStyle("italian", "Italian Evening", "https://styles.foodenhancer.com/italian.jpg")
+        val POP_ART = EnhancementStyle("pop_art", "Pop Art", "https://styles.foodenhancer.com/pop_art.jpg")
+        val DARK_MOOD = EnhancementStyle("dark_mood", "Dark Mood", "https://styles.foodenhancer.com/dark_mood.jpg")
 
-        val ALL = listOf(VIBRANT, WARM, COOL, DRAMATIC, NATURAL)
+        val ALL = listOf(RUSTIC, MINIMAL, ITALIAN, POP_ART, DARK_MOOD)
     }
 }
