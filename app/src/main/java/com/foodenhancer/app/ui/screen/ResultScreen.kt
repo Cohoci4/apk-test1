@@ -224,15 +224,21 @@ private fun saveImageToMediaStore(context: Context, imageUri: String) {
 
         val uri = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
         if (uri != null) {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, outputStream)
+            val outputStream = context.contentResolver.openOutputStream(uri)
+            if (outputStream != null) {
+                outputStream.use { os ->
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, os)
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    contentValues.clear()
+                    contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
+                    context.contentResolver.update(uri, contentValues, null, null)
+                }
+                Toast.makeText(context, "Image saved to gallery!", Toast.LENGTH_SHORT).show()
+            } else {
+                context.contentResolver.delete(uri, null, null)
+                Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentValues.clear()
-                contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
-                context.contentResolver.update(uri, contentValues, null, null)
-            }
-            Toast.makeText(context, "Image saved to gallery!", Toast.LENGTH_SHORT).show()
         }
     } catch (e: Exception) {
         Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
