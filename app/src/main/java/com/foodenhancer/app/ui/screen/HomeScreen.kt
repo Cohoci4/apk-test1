@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -61,10 +63,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.foodenhancer.app.ui.theme.Primary
 import com.foodenhancer.app.ui.viewmodel.HomeViewModel
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -78,6 +85,7 @@ fun HomeScreen(
     val context = LocalContext.current
 
     var hasCameraPermission by remember { mutableStateOf(false) }
+    var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -139,7 +147,7 @@ fun HomeScreen(
                 .weight(1f)
         ) {
             if (hasCameraPermission) {
-                CameraPreview()
+                CameraPreview(onImageCaptureReady = { imageCapture = it })
             } else {
                 Box(
                     modifier = Modifier
@@ -181,9 +189,39 @@ fun HomeScreen(
 
                 PulsingCaptureButton(
                     onClick = {
-                        // Stub: use a placeholder image URI for camera capture
-                        val placeholderUri = Uri.encode("file:///android_asset/sample_original.jpg")
-                        onImageSelected(placeholderUri)
+                        val capture = imageCapture
+                        if (capture != null) {
+                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                            val picturesDir = File(context.getExternalFilesDir(null), "Pictures")
+                            picturesDir.mkdirs()
+                            val photoFile = File(picturesDir, "IMG_$timeStamp.jpg")
+                            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+                            capture.takePicture(
+                                outputOptions,
+                                ContextCompat.getMainExecutor(context),
+                                object : ImageCapture.OnImageSavedCallback {
+                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                        val uri = FileProvider.getUriForFile(
+                                            context,
+                                            "${context.packageName}.fileprovider",
+                                            photoFile
+                                        )
+                                        val encoded = Uri.encode(uri.toString())
+                                        onImageSelected(encoded)
+                                    }
+
+                                    override fun onError(exception: ImageCaptureException) {
+                                        // Fallback to placeholder
+                                        val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
+                                        onImageSelected(encoded)
+                                    }
+                                }
+                            )
+                        } else {
+                            val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
+                            onImageSelected(encoded)
+                        }
                     }
                 )
 
@@ -260,8 +298,7 @@ fun PulsingCaptureButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun CameraPreview() {
-    val context = LocalContext.current
+fun CameraPreview(onImageCaptureReady: (ImageCapture) -> Unit = {}) {
     val lifecycleOwner = LocalLifecycleOwner.current
 
     AndroidView(
@@ -274,14 +311,19 @@ fun CameraPreview() {
                     val preview = Preview.Builder().build().also {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
+                    val capture = ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .build()
+                    onImageCaptureReady(capture)
                     cameraProvider.unbindAll()
                     cameraProvider.bindToLifecycle(
                         lifecycleOwner,
                         CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview
+                        preview,
+                        capture
                     )
                 } catch (_: Exception) {
-                    // Camera init failed - show black screen
+                    // Camera init failed
                 }
             }, ContextCompat.getMainExecutor(ctx))
             previewView

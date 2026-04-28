@@ -1,15 +1,22 @@
 package com.foodenhancer.app.ui.viewmodel
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.foodenhancer.domain.usecase.EnhanceFoodImageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 data class StyleItem(
@@ -31,7 +38,8 @@ data class StylePickerUiState(
 @HiltViewModel
 class StylePickerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val enhanceFoodImageUseCase: EnhanceFoodImageUseCase
+    private val enhanceFoodImageUseCase: EnhanceFoodImageUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val imageUri: String = Uri.decode(savedStateHandle.get<String>("imageUri") ?: "")
@@ -58,8 +66,17 @@ class StylePickerViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
         viewModelScope.launch {
+            val imageBytes = loadImageBytes(imageUri)
+            if (imageBytes == null) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Failed to load image"
+                )
+                return@launch
+            }
+
             val result = enhanceFoodImageUseCase(
-                imageBytes = ByteArray(0),
+                imageBytes = imageBytes,
                 imageUri = imageUri,
                 styleId = selectedId
             )
@@ -83,6 +100,42 @@ class StylePickerViewModel @Inject constructor(
                     )
                 }
             )
+        }
+    }
+
+    private suspend fun loadImageBytes(uri: String): ByteArray? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val bitmap = when {
+                    uri.startsWith("content://") -> {
+                        val parsedUri = Uri.parse(uri)
+                        context.contentResolver.openInputStream(parsedUri)?.use { stream ->
+                            BitmapFactory.decodeStream(stream)
+                        }
+                    }
+                    uri.startsWith("file:///android_asset/") -> {
+                        val assetPath = uri.removePrefix("file:///android_asset/")
+                        context.assets.open(assetPath).use { stream ->
+                            BitmapFactory.decodeStream(stream)
+                        }
+                    }
+                    uri.startsWith("/") -> {
+                        BitmapFactory.decodeFile(uri)
+                    }
+                    else -> {
+                        val parsedUri = Uri.parse(uri)
+                        context.contentResolver.openInputStream(parsedUri)?.use { stream ->
+                            BitmapFactory.decodeStream(stream)
+                        }
+                    }
+                } ?: return@withContext null
+
+                val outputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                outputStream.toByteArray()
+            } catch (_: Exception) {
+                null
+            }
         }
     }
 }

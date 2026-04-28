@@ -1,6 +1,8 @@
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
+    id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -25,4 +27,8 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite:${Versions.tensorflowLite}")
     implementation("org.tensorflow:tensorflow-lite-gpu:${Versions.tensorflowLiteGpu}")
     implementation("org.tensorflow:tensorflow-lite-support:${Versions.tensorflowLiteSupport}")
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:${Versions.hilt}")
+    kapt("com.google.dagger:hilt-android-compiler:${Versions.hilt}")
 }

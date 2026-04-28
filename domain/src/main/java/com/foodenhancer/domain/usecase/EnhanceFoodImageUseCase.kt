@@ -7,6 +7,7 @@ import com.foodenhancer.domain.repository.HistoryRepository
 import com.foodenhancer.domain.repository.ImageEnhancerRepository
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
 import com.foodenhancer.domain.repository.SubscriptionRepository
+import com.foodenhancer.domain.repository.WatermarkApplier
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,7 +20,8 @@ class EnhanceFoodImageUseCase @Inject constructor(
     private val segmentationRepository: ImageSegmentationRepository,
     private val enhancerRepository: ImageEnhancerRepository,
     private val historyRepository: HistoryRepository,
-    private val subscriptionRepository: SubscriptionRepository
+    private val subscriptionRepository: SubscriptionRepository,
+    private val watermarkApplier: WatermarkApplier
 ) {
     private val demoMutex = Mutex()
 
@@ -51,15 +53,31 @@ class EnhanceFoodImageUseCase @Inject constructor(
         }
         val result = enhanceResult.getOrThrow()
 
+        // Apply watermark for non-Pro users
+        val finalUri = if (!isPro) {
+            try {
+                watermarkApplier.applyWatermark(result.resultUri)
+            } catch (_: Exception) {
+                result.resultUri
+            }
+        } else {
+            result.resultUri
+        }
+
         val foodImage = FoodImage(
             id = UUID.randomUUID().toString(),
             originalUri = imageUri,
-            processedUri = result.resultUri,
+            processedUri = finalUri,
             style = EnhancementStyle.ALL.find { it.id == styleId },
             createdAt = System.currentTimeMillis()
         )
         historyRepository.save(foodImage)
 
-        return Result.success(result)
+        return Result.success(
+            ProcessingResult(
+                resultUri = finalUri,
+                thumbnailUri = result.thumbnailUri
+            )
+        )
     }
 }

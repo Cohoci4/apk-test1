@@ -1,30 +1,32 @@
 package com.foodenhancer.data.repository
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import com.foodenhancer.core_ml.ImageSegmenter
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
-class ImageSegmentationRepositoryImpl @Inject constructor() : ImageSegmentationRepository {
+class ImageSegmentationRepositoryImpl @Inject constructor(
+    private val imageSegmenter: ImageSegmenter
+) : ImageSegmentationRepository {
 
     override suspend fun segment(image: ByteArray): Result<ByteArray> {
-        return try {
-            Result.success(createPlaceholderMask())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+        return withContext(Dispatchers.Default) {
+            try {
+                val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
+                    ?: return@withContext Result.failure(Exception("Failed to decode image"))
 
-    private fun createPlaceholderMask(): ByteArray {
-        // Minimal valid 1x1 black PNG (placeholder for TFLite segmentation)
-        return byteArrayOf(
-            0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-            0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-            0x08, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x7E, 0x9B.toByte(), 0x55,
-            0x00, 0x00, 0x00, 0x0A, 0x49, 0x44, 0x41, 0x54,
-            0x78, 0x01, 0x62, 0x60, 0x00, 0x00, 0x00, 0x02, 0x00, 0x01,
-            0xE5.toByte(), 0x27, 0xDE.toByte(), 0xFC.toByte(),
-            0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44,
-            0xAE.toByte(), 0x42, 0x60, 0x82.toByte()
-        )
+                val maskBitmap = imageSegmenter.segment(bitmap)
+
+                val outputStream = ByteArrayOutputStream()
+                maskBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                Result.success(outputStream.toByteArray())
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
     }
 }
