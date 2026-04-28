@@ -229,6 +229,7 @@ private fun saveImageToMediaStore(context: Context, imageUri: String) {
                 outputStream.use { os ->
                     bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, os)
                 }
+                bitmap.recycle()
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     contentValues.clear()
                     contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)

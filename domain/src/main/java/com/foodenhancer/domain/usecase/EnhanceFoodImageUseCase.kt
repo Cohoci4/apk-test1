@@ -39,6 +39,7 @@ class EnhanceFoodImageUseCase @Inject constructor(
                 if (remaining <= 0) {
                     return Result.failure(IllegalStateException("Demo limit exceeded. Please upgrade to Pro."))
                 }
+                subscriptionRepository.decrementDemo()
             }
         }
 
@@ -53,12 +54,6 @@ class EnhanceFoodImageUseCase @Inject constructor(
             return Result.failure(enhanceResult.exceptionOrNull() ?: Exception("Enhancement failed"))
         }
         val result = enhanceResult.getOrThrow()
-
-        if (!isPro) {
-            demoMutex.withLock {
-                subscriptionRepository.decrementDemo()
-            }
-        }
 
         // Apply watermark for non-Pro users
         val finalUri = if (!isPro) {
