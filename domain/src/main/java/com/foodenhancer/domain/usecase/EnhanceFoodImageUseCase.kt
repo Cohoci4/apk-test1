@@ -8,6 +8,8 @@ import com.foodenhancer.domain.repository.ImageEnhancerRepository
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
 import com.foodenhancer.domain.repository.SubscriptionRepository
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.UUID
 import javax.inject.Inject
 
@@ -17,6 +19,8 @@ class EnhanceFoodImageUseCase @Inject constructor(
     private val historyRepository: HistoryRepository,
     private val subscriptionRepository: SubscriptionRepository
 ) {
+    private val demoMutex = Mutex()
+
     suspend operator fun invoke(
         imageBytes: ByteArray,
         imageUri: String,
@@ -24,11 +28,13 @@ class EnhanceFoodImageUseCase @Inject constructor(
     ): Result<ProcessingResult> {
         val isPro = subscriptionRepository.isPro().first()
         if (!isPro) {
-            val remaining = subscriptionRepository.getRemainingDemo().first()
-            if (remaining <= 0) {
-                return Result.failure(IllegalStateException("Demo limit exceeded. Please upgrade to Pro."))
+            demoMutex.withLock {
+                val remaining = subscriptionRepository.getRemainingDemo().first()
+                if (remaining <= 0) {
+                    return Result.failure(IllegalStateException("Demo limit exceeded. Please upgrade to Pro."))
+                }
+                subscriptionRepository.decrementDemo()
             }
-            subscriptionRepository.decrementDemo()
         }
 
         val maskResult = segmentationRepository.segment(imageBytes)
