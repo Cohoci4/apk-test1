@@ -1,0 +1,206 @@
+{
+  "categories": [
+    {
+      "id": "favorites",
+      "name": "Favorites",
+      "displayOrder": 0
+    },
+    {
+      "id": "seasons",
+      "name": "Seasons",
+      "displayOrder": 1
+    },
+    {
+      "id": "mood",
+      "name": "Mood",
+      "displayOrder": 2
+    },
+    {
+      "id": "cuisine",
+      "name": "Cuisine",
+      "displayOrder": 3
+    },
+    {
+      "id": "minimal",
+      "name": "Minimal",
+      "displayOrder": 4
+    }
+  ],
+  "styles": [
+    {
+      "id": "rustic",
+      "name": "Rustic Wood",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/rustic.jpg",
+      "backgroundImage": "backgrounds/rustic.jpg"
+    },
+    {
+      "id": "minimal",
+      "name": "Clean White",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal.jpg",
+      "backgroundImage": "backgrounds/minimal.jpg"
+    },
+    {
+      "id": "italian",
+      "name": "Italian Evening",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/italian.jpg",
+      "backgroundImage": "backgrounds/italian.jpg"
+    },
+    {
+      "id": "pop_art",
+      "name": "Pop Art",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/popart.jpg",
+      "backgroundImage": "backgrounds/popart.jpg"
+    },
+    {
+      "id": "dark_mood",
+      "name": "Dark Mood",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/dark.jpg",
+      "backgroundImage": "backgrounds/dark.jpg"
+    },
+    {
+      "id": "seasons_spring",
+      "name": "Spring Bloom",
+      "categoryId": "seasons",
+      "previewImage": "backgrounds/seasons_spring.jpg",
+      "backgroundImage": "backgrounds/seasons_spring.jpg"
+    },
+    {
+      "id": "seasons_summer",
+      "name": "Summer Sun",
+      "categoryId": "seasons",
+      "previewImage": "backgrounds/seasons_summer.jpg",
+      "backgroundImage": "backgrounds/seasons_summer.jpg"
+    },
+    {
+      "id": "seasons_autumn",
+      "name": "Autumn Harvest",
+      "categoryId": "seasons",
+      "previewImage": "backgrounds/seasons_autumn.jpg",
+      "backgroundImage": "backgrounds/seasons_autumn.jpg"
+    },
+    {
+      "id": "seasons_winter",
+      "name": "Winter Frost",
+      "categoryId": "seasons",
+      "previewImage": "backgrounds/seasons_winter.jpg",
+      "backgroundImage": "backgrounds/seasons_winter.jpg"
+    },
+    {
+      "id": "seasons_golden_hour",
+      "name": "Golden Hour",
+      "categoryId": "seasons",
+      "previewImage": "backgrounds/seasons_golden_hour.jpg",
+      "backgroundImage": "backgrounds/seasons_golden_hour.jpg"
+    },
+    {
+      "id": "mood_romantic",
+      "name": "Romantic",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/mood_romantic.jpg",
+      "backgroundImage": "backgrounds/mood_romantic.jpg"
+    },
+    {
+      "id": "mood_cozy",
+      "name": "Cozy",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/mood_cozy.jpg",
+      "backgroundImage": "backgrounds/mood_cozy.jpg"
+    },
+    {
+      "id": "mood_elegant",
+      "name": "Elegant",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/mood_elegant.jpg",
+      "backgroundImage": "backgrounds/mood_elegant.jpg"
+    },
+    {
+      "id": "mood_fresh",
+      "name": "Fresh",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/mood_fresh.jpg",
+      "backgroundImage": "backgrounds/mood_fresh.jpg"
+    },
+    {
+      "id": "mood_vibrant",
+      "name": "Vibrant",
+      "categoryId": "mood",
+      "previewImage": "backgrounds/mood_vibrant.jpg",
+      "backgroundImage": "backgrounds/mood_vibrant.jpg"
+    },
+    {
+      "id": "cuisine_japanese",
+      "name": "Japanese",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/cuisine_japanese.jpg",
+      "backgroundImage": "backgrounds/cuisine_japanese.jpg"
+    },
+    {
+      "id": "cuisine_mediterranean",
+      "name": "Mediterranean",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/cuisine_mediterranean.jpg",
+      "backgroundImage": "backgrounds/cuisine_mediterranean.jpg"
+    },
+    {
+      "id": "cuisine_french",
+      "name": "French",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/cuisine_french.jpg",
+      "backgroundImage": "backgrounds/cuisine_french.jpg"
+    },
+    {
+      "id": "cuisine_mexican",
+      "name": "Mexican",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/cuisine_mexican.jpg",
+      "backgroundImage": "backgrounds/cuisine_mexican.jpg"
+    },
+    {
+      "id": "cuisine_street_food",
+      "name": "Street Food",
+      "categoryId": "cuisine",
+      "previewImage": "backgrounds/cuisine_street_food.jpg",
+      "backgroundImage": "backgrounds/cuisine_street_food.jpg"
+    },
+    {
+      "id": "minimal_marble",
+      "name": "White Marble",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal_marble.jpg",
+      "backgroundImage": "backgrounds/minimal_marble.jpg"
+    },
+    {
+      "id": "minimal_concrete",
+      "name": "Concrete",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal_concrete.jpg",
+      "backgroundImage": "backgrounds/minimal_concrete.jpg"
+    },
+    {
+      "id": "minimal_pastel_pink",
+      "name": "Pastel Pink",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal_pastel_pink.jpg",
+      "backgroundImage": "backgrounds/minimal_pastel_pink.jpg"
+    },
+    {
+      "id": "minimal_light_wood",
+      "name": "Light Wood",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal_light_wood.jpg",
+      "backgroundImage": "backgrounds/minimal_light_wood.jpg"
+    },
+    {
+      "id": "minimal_linen",
+      "name": "Linen",
+      "categoryId": "minimal",
+      "previewImage": "backgrounds/minimal_linen.jpg",
+      "backgroundImage": "backgrounds/minimal_linen.jpg"
+    }
+  ]
+}
