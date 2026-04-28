@@ -1,5 +1,6 @@
 package com.foodenhancer.domain.usecase
 
+import com.foodenhancer.domain.model.EnhancementStyle
 import com.foodenhancer.domain.model.FoodImage
 import com.foodenhancer.domain.model.ProcessingResult
 import com.foodenhancer.domain.repository.HistoryRepository
@@ -27,6 +28,7 @@ class EnhanceFoodImageUseCase @Inject constructor(
             if (remaining <= 0) {
                 return Result.failure(IllegalStateException("Demo limit exceeded. Please upgrade to Pro."))
             }
+            subscriptionRepository.decrementDemo()
         }
 
         val maskResult = segmentationRepository.segment(imageBytes)
@@ -45,14 +47,10 @@ class EnhanceFoodImageUseCase @Inject constructor(
             id = UUID.randomUUID().toString(),
             originalUri = imageUri,
             processedUri = result.resultUri,
-            style = null,
+            style = EnhancementStyle.ALL.find { it.id == styleId },
             createdAt = System.currentTimeMillis()
         )
         historyRepository.save(foodImage)
-
-        if (!isPro) {
-            subscriptionRepository.decrementDemo()
-        }
 
         return Result.success(result)
     }
