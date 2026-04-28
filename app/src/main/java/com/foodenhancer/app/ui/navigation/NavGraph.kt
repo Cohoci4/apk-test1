@@ -16,14 +16,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.foodenhancer.app.ui.screen.AboutScreen
 import com.foodenhancer.app.ui.screen.BatchResultScreen
 import com.foodenhancer.app.ui.screen.BatchStyleScreen
 import com.foodenhancer.app.ui.screen.CropRotateScreen
 import com.foodenhancer.app.ui.screen.HistoryScreen
 import com.foodenhancer.app.ui.screen.HomeScreen
+import com.foodenhancer.app.ui.screen.PrivacyScreen
 import com.foodenhancer.app.ui.screen.ResultScreen
 import com.foodenhancer.app.ui.screen.StylePickerScreen
 import com.foodenhancer.app.ui.screen.SubscriptionScreen
+import com.foodenhancer.app.ui.screen.TermsScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController = rememberNavController()) {
@@ -132,7 +135,23 @@ fun AppNavGraph(navController: NavHostController = rememberNavController()) {
             }
 
             composable(Routes.SUBSCRIPTION) {
-                SubscriptionScreen()
+                SubscriptionScreen(
+                    onNavigateToAbout = { navController.navigate(Routes.ABOUT) },
+                    onNavigateToPrivacy = { navController.navigate(Routes.PRIVACY) },
+                    onNavigateToTerms = { navController.navigate(Routes.TERMS) }
+                )
+            }
+
+            composable(Routes.ABOUT) {
+                AboutScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(Routes.PRIVACY) {
+                PrivacyScreen(onBack = { navController.popBackStack() })
+            }
+
+            composable(Routes.TERMS) {
+                TermsScreen(onBack = { navController.popBackStack() })
             }
 
             composable(Routes.BATCH_STYLE) {

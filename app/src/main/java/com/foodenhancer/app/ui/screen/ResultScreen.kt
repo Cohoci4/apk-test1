@@ -2,9 +2,7 @@ package com.foodenhancer.app.ui.screen
 
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -46,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -59,15 +58,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.foodenhancer.app.R
+import com.foodenhancer.app.ui.components.ShareBottomSheet
 import com.foodenhancer.app.ui.theme.Primary
 import com.foodenhancer.app.ui.viewmodel.ResultViewModel
+import com.foodenhancer.core.util.StorageHelper
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,10 +81,11 @@ fun ResultScreen(
 ) {
     val isPro by viewModel.isPro.collectAsState()
     val context = LocalContext.current
+    var showShareSheet by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Result") },
+            title = { Text(stringResource(R.string.result_title)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -119,7 +122,7 @@ fun ResultScreen(
 
             if (!isPro) {
                 Text(
-                    text = "Demo",
+                    text = stringResource(R.string.result_demo),
                     color = Color.White.copy(alpha = 0.5f),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -140,7 +143,7 @@ fun ResultScreen(
             ) {
                 Icon(Icons.Filled.Hd, contentDescription = "HD", tint = Primary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("HD", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.result_hd), fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Switch(
                     checked = false,
@@ -159,23 +162,29 @@ fun ResultScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             OutlinedButton(
-                onClick = { saveImageToMediaStore(context, viewModel.processedUri) },
+                onClick = {
+                    if (!StorageHelper.hasEnoughStorage()) {
+                        Toast.makeText(context, context.getString(R.string.error_insufficient_storage), Toast.LENGTH_LONG).show()
+                    } else {
+                        saveImageToMediaStore(context, viewModel.processedUri)
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Filled.Save, contentDescription = "Save", modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Save")
+                Text(stringResource(R.string.result_save))
             }
 
             OutlinedButton(
-                onClick = { shareImage(context, viewModel.processedUri) },
+                onClick = { showShareSheet = true },
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(Icons.Filled.Share, contentDescription = "Share", modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Share")
+                Text(stringResource(R.string.result_share))
             }
 
             Button(
@@ -191,11 +200,18 @@ fun ResultScreen(
                     tint = Color.White
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Again", color = Color.White)
+                Text(stringResource(R.string.result_again), color = Color.White)
             }
         }
 
         Spacer(modifier = Modifier.height(8.dp))
+    }
+
+    if (showShareSheet) {
+        ShareBottomSheet(
+            imageFilePath = viewModel.processedUri,
+            onDismiss = { showShareSheet = false }
+        )
     }
 }
 
@@ -203,13 +219,13 @@ private fun saveImageToMediaStore(context: Context, imageUri: String) {
     try {
         val file = File(imageUri)
         if (!file.exists()) {
-            Toast.makeText(context, "Image file not found", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.error_image_not_found), Toast.LENGTH_SHORT).show()
             return
         }
 
         val bitmap = BitmapFactory.decodeFile(file.absolutePath)
         if (bitmap == null) {
-            Toast.makeText(context, "Failed to decode image", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.error_decode_failed), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -235,63 +251,42 @@ private fun saveImageToMediaStore(context: Context, imageUri: String) {
                     contentValues.put(MediaStore.Images.Media.IS_PENDING, 0)
                     context.contentResolver.update(uri, contentValues, null, null)
                 }
-                Toast.makeText(context, "Image saved to gallery!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.result_saved), Toast.LENGTH_SHORT).show()
             } else {
+                bitmap.recycle()
                 context.contentResolver.delete(uri, null, null)
-                Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.error_save_failed), Toast.LENGTH_SHORT).show()
             }
+        } else {
+            bitmap.recycle()
         }
     } catch (e: Exception) {
-        Toast.makeText(context, "Save failed: ${e.message}", Toast.LENGTH_SHORT).show()
-    }
-}
-
-private fun shareImage(context: Context, imageUri: String) {
-    try {
-        val file = File(imageUri)
-        if (!file.exists()) {
-            Toast.makeText(context, "Image file not found", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val contentUri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
-
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "image/jpeg"
-            putExtra(Intent.EXTRA_STREAM, contentUri)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(Intent.createChooser(shareIntent, "Share enhanced photo"))
-    } catch (e: Exception) {
-        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, "Check out my enhanced food photo from FoodEnhancer!")
-        }
-        context.startActivity(Intent.createChooser(shareIntent, "Share"))
+        Toast.makeText(context, context.getString(R.string.error_save_failed), Toast.LENGTH_SHORT).show()
     }
 }
 
 @Composable
-fun ComparisonSlider(originalUri: String, processedUri: String) {
+fun ComparisonSlider(
+    originalUri: String,
+    processedUri: String
+) {
     var sliderPosition by remember { mutableFloatStateOf(0.5f) }
     var boxWidth by remember { mutableFloatStateOf(1f) }
     var boxHeight by remember { mutableFloatStateOf(1f) }
+    val density = LocalDensity.current
 
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color(0xFF1E1E1E))
             .onSizeChanged {
                 boxWidth = it.width.toFloat()
                 boxHeight = it.height.toFloat()
             }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures { _, dragAmount ->
-                    val newPos = sliderPosition + (dragAmount / boxWidth)
-                    sliderPosition = newPos.coerceIn(0f, 1f)
+                    val delta = dragAmount / boxWidth
+                    sliderPosition = (sliderPosition + delta).coerceIn(0f, 1f)
                 }
             }
     ) {
@@ -319,64 +314,52 @@ fun ComparisonSlider(originalUri: String, processedUri: String) {
             )
         }
 
-        val density = LocalDensity.current
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Vertical divider line
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            x = (boxWidth * sliderPosition).toInt() - with(density) { 1.dp.roundToPx() },
-                            y = 0
-                        )
-                    }
-                    .width(2.dp)
-                    .fillMaxHeight()
-                    .background(Color.White)
-            )
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (boxWidth * sliderPosition).toInt() - with(density) { 1.dp.roundToPx() },
+                        y = 0
+                    )
+                }
+                .width(2.dp)
+                .fillMaxHeight()
+                .background(Color.White)
+        )
 
-            // Drag handle
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            x = (boxWidth * sliderPosition).toInt() - with(density) { 16.dp.roundToPx() },
-                            y = (boxHeight * 0.4f).toInt()
-                        )
-                    }
-                    .size(32.dp)
-                    .background(Color.White, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("⇔", fontSize = 16.sp)
-            }
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (boxWidth * sliderPosition).toInt() - with(density) { 16.dp.roundToPx() },
+                        y = (boxHeight * 0.5f).toInt() - with(density) { 16.dp.roundToPx() }
+                    )
+                }
+                .size(32.dp)
+                .background(Color.White, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("◄►", fontSize = 10.sp, color = Color.Gray)
         }
 
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 8.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
         ) {
-            Text(
-                text = "Original",
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            )
-            Text(
-                text = "Enhanced",
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier
-                    .background(Primary.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            )
+            Text("Original", color = Color.White, fontSize = 10.sp)
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        ) {
+            Text("Enhanced", color = Color.White, fontSize = 10.sp)
         }
     }
 }

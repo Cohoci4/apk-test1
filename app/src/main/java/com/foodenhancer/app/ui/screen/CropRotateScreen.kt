@@ -54,6 +54,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.foodenhancer.app.R
+import com.foodenhancer.app.ui.components.EnhanceLoadingOverlay
 import com.foodenhancer.app.ui.theme.Primary
 import com.foodenhancer.app.ui.viewmodel.CropRotateViewModel
 
@@ -119,9 +121,10 @@ fun CropRotateScreen(
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            title = { Text("Crop & Rotate") },
+            title = { Text(context.getString(R.string.crop_title)) },
             navigationIcon = {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -232,5 +235,8 @@ fun CropRotateScreen(
                 modifier = Modifier.padding(16.dp)
             )
         }
+    }
+
+    EnhanceLoadingOverlay(visible = uiState.isProcessing)
     }
 }

@@ -44,18 +44,23 @@ class EnhanceFoodImageUseCase @Inject constructor(
         }
 
         val maskResult = segmentationRepository.segment(imageBytes)
-        if (maskResult.isFailure) {
-            return Result.failure(maskResult.exceptionOrNull() ?: Exception("Segmentation failed"))
-        }
-        val mask = maskResult.getOrThrow()
+        val isManualMode = maskResult.isFailure
 
-        val enhanceResult = enhancerRepository.enhance(imageBytes, mask, styleId)
-        if (enhanceResult.isFailure) {
-            return Result.failure(enhanceResult.exceptionOrNull() ?: Exception("Enhancement failed"))
+        val result = if (isManualMode) {
+            val fallbackResult = enhancerRepository.enhanceFallback(imageBytes, styleId)
+            if (fallbackResult.isFailure) {
+                return Result.failure(fallbackResult.exceptionOrNull() ?: Exception("Enhancement failed"))
+            }
+            fallbackResult.getOrThrow()
+        } else {
+            val mask = maskResult.getOrThrow()
+            val enhanceResult = enhancerRepository.enhance(imageBytes, mask, styleId)
+            if (enhanceResult.isFailure) {
+                return Result.failure(enhanceResult.exceptionOrNull() ?: Exception("Enhancement failed"))
+            }
+            enhanceResult.getOrThrow()
         }
-        val result = enhanceResult.getOrThrow()
 
-        // Apply watermark for non-Pro users
         val finalUri = if (!isPro) {
             try {
                 watermarkApplier.applyWatermark(result.resultUri)
@@ -79,7 +84,8 @@ class EnhanceFoodImageUseCase @Inject constructor(
         return Result.success(
             ProcessingResult(
                 resultUri = finalUri,
-                thumbnailUri = result.thumbnailUri
+                thumbnailUri = result.thumbnailUri,
+                isManualMode = isManualMode
             )
         )
     }

@@ -3,6 +3,10 @@ package com.foodenhancer.data.repository
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import com.foodenhancer.core.util.ImageCompositor
 import com.foodenhancer.domain.model.ProcessingResult
 import com.foodenhancer.domain.repository.ImageEnhancerRepository
@@ -64,6 +68,45 @@ class ImageEnhancerRepositoryImpl @Inject constructor(
 
                 val fileUri = outputFile.absolutePath
                 Result.success(ProcessingResult(resultUri = fileUri, thumbnailUri = fileUri))
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun enhanceFallback(
+        image: ByteArray,
+        styleId: String
+    ): Result<ProcessingResult> {
+        return withContext(Dispatchers.Default) {
+            try {
+                val original = BitmapFactory.decodeByteArray(image, 0, image.size)
+                    ?: return@withContext Result.failure(Exception("Failed to decode image"))
+
+                val enhanced = Bitmap.createBitmap(original.width, original.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(enhanced)
+                val paint = Paint()
+
+                val brightnessMatrix = ColorMatrix().apply {
+                    setScale(1.1f, 1.1f, 1.1f, 1f)
+                }
+                val saturationMatrix = ColorMatrix().apply {
+                    setSaturation(1.15f)
+                }
+                brightnessMatrix.postConcat(saturationMatrix)
+                paint.colorFilter = ColorMatrixColorFilter(brightnessMatrix)
+
+                canvas.drawBitmap(original, 0f, 0f, paint)
+                original.recycle()
+
+                val outputFile = File(context.cacheDir, "enhanced_fallback_${UUID.randomUUID()}.jpg")
+                FileOutputStream(outputFile).use { fos ->
+                    enhanced.compress(Bitmap.CompressFormat.JPEG, 95, fos)
+                }
+                enhanced.recycle()
+
+                val fileUri = outputFile.absolutePath
+                Result.success(ProcessingResult(resultUri = fileUri, thumbnailUri = fileUri, isManualMode = true))
             } catch (e: Exception) {
                 Result.failure(e)
             }

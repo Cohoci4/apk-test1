@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.foodenhancer.core.util.StorageHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +50,10 @@ class BatchResultViewModel @Inject constructor(
     }
 
     fun saveAll() {
+        if (!StorageHelper.hasEnoughStorage()) {
+            _uiState.value = _uiState.value.copy(error = context.getString(com.foodenhancer.app.R.string.error_insufficient_storage))
+            return
+        }
         val uris = _uiState.value.processedUris
         _uiState.value = _uiState.value.copy(isSaving = true)
 

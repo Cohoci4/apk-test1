@@ -5,13 +5,31 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.Delegate
+import java.io.Closeable
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 
-class FoodSegmenter(private val context: Context) {
+// NOTE: Current model is u2net_fp16.tflite (~4.4MB, float16).
+// For further APK size reduction, INT8 quantization can be applied:
+//   converter = tf.lite.TFLiteConverter.from_saved_model("u2net_saved_model")
+//   converter.optimizations = [tf.lite.Optimize.DEFAULT]
+//   converter.target_spec.supported_types = [tf.int8]
+//   tflite_model = converter.convert()
+// This would reduce model size to ~2-3MB with minimal quality loss.
+//
+// Alternatively, model can be moved to on-demand download at first launch
+// to keep the initial APK smaller. See ModelDownloader TODO below.
+
+// TODO: Implement ModelDownloader utility for first-launch download:
+//   1. Check if model exists in app files dir
+//   2. If not, download from CDN: https://cdn.foodenhancer.com/models/u2net_fp16.tflite
+//   3. Show progress notification during download
+//   4. Cache locally for subsequent launches
+
+class FoodSegmenter(private val context: Context) : Closeable {
 
     private var interpreter: Interpreter? = null
     private var gpuDelegate: Delegate? = null
@@ -56,12 +74,15 @@ class FoodSegmenter(private val context: Context) {
             return try {
                 val resized = Bitmap.createScaledBitmap(bitmap, inputSize, inputSize, true)
                 val inputBuffer = bitmapToByteBuffer(resized)
+                if (resized != bitmap) resized.recycle()
 
                 val outputBuffer = Array(1) { Array(inputSize) { Array(inputSize) { FloatArray(1) } } }
                 interp.run(inputBuffer, outputBuffer)
 
                 val mask = outputToMaskBitmap(outputBuffer[0])
-                Bitmap.createScaledBitmap(mask, bitmap.width, bitmap.height, true)
+                val scaledMask = Bitmap.createScaledBitmap(mask, bitmap.width, bitmap.height, true)
+                if (scaledMask != mask) mask.recycle()
+                scaledMask
             } catch (e: Exception) {
                 createFallbackMask(bitmap.width, bitmap.height)
             }
@@ -128,7 +149,7 @@ class FoodSegmenter(private val context: Context) {
         }
     }
 
-    fun close() {
+    override fun close() {
         synchronized(lock) {
             interpreter?.close()
             interpreter = null

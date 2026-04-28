@@ -29,7 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import com.foodenhancer.app.ui.components.EnhanceLoadingOverlay
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -93,33 +93,19 @@ fun BatchStyleScreen(
 
         if (uiState.isProcessing) {
             val progress = uiState.progress
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator(color = Primary, modifier = Modifier.size(64.dp))
-                Spacer(modifier = Modifier.height(24.dp))
-                if (progress != null) {
-                    Text(
-                        text = "Processing ${progress.currentIndex + 1} of ${progress.total}...",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    LinearProgressIndicator(
-                        progress = { (progress.currentIndex + 1).toFloat() / progress.total },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(4.dp)),
-                        color = Primary
-                    )
-                } else {
-                    Text("Preparing...", fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
-                }
+            val progressFraction = if (progress != null) {
+                (progress.currentIndex + 1).toFloat() / progress.total
+            } else null
+            val message = if (progress != null) {
+                "Processing ${progress.currentIndex + 1} of ${progress.total}"
+            } else "Preparing"
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                EnhanceLoadingOverlay(
+                    visible = true,
+                    progress = progressFraction,
+                    message = message
+                )
             }
             return
         }

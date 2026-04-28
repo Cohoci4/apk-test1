@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Food Enhancer</string>
+
+    <!-- Error messages -->
+    <string name="error_camera_unavailable">Camera not available. Please select a photo from gallery.</string>
+    <string name="error_segmentation_fallback">AI couldn\'t isolate the dish, but we enhanced your photo.</string>
+    <string name="error_insufficient_storage">Not enough storage space. Please free up some space.</string>
+    <string name="error_save_failed">Failed to save image. Please try again.</string>
+    <string name="error_general">Something went wrong. Please try again.</string>
+    <string name="error_demo_limit">Demo limit exceeded. Please upgrade to Pro.</string>
+    <string name="error_batch_demo_limit">Not enough demo uses left (you need %1$d, have %2$d)</string>
+    <string name="error_image_not_found">Image file not found</string>
+    <string name="error_decode_failed">Failed to decode image</string>
+    <string name="error_app_not_installed">%1$s is not installed</string>
+
+    <!-- Home screen -->
+    <string name="home_title">FoodEnhancer</string>
+    <string name="home_camera_permission">Camera permission required</string>
+    <string name="home_batch_queue">Batch Queue (%1$d/10) — long press to remove</string>
+    <string name="home_single">Single</string>
+    <string name="home_batch">Batch</string>
+
+    <!-- Style picker -->
+    <string name="style_picker_title">Choose Style</string>
+    <string name="style_picker_next">Next</string>
+    <string name="style_picker_favorites">Favorites</string>
+
+    <!-- Crop rotate -->
+    <string name="crop_title">Crop &amp; Rotate</string>
+    <string name="crop_rotate_90">Rotate 90°</string>
+    <string name="crop_reset">Reset</string>
+    <string name="crop_apply">Apply &amp; Enhance</string>
+    <string name="crop_processing">Processing…</string>
+    <string name="crop_loading">Loading image…</string>
+
+    <!-- Result screen -->
+    <string name="result_title">Result</string>
+    <string name="result_save">Save</string>
+    <string name="result_share">Share</string>
+    <string name="result_again">Again</string>
+    <string name="result_demo">Demo</string>
+    <string name="result_hd">HD</string>
+    <string name="result_saved">Image saved to gallery!</string>
+
+    <!-- Batch -->
+    <string name="batch_style_title">Batch Enhancement (%1$d photos)</string>
+    <string name="batch_one_style">One style for all</string>
+    <string name="batch_individual">Individual styles</string>
+    <string name="batch_select_style">Select a style for all photos:</string>
+    <string name="batch_enhance_all">Enhance All</string>
+    <string name="batch_processing">Processing %1$d of %2$d…</string>
+    <string name="batch_preparing">Preparing…</string>
+    <string name="batch_result_title">Batch Results (%1$d photos)</string>
+    <string name="batch_save_all">Save All</string>
+    <string name="batch_share_all">Share All</string>
+    <string name="batch_share_selected">Share Selected</string>
+    <string name="batch_saved">All photos saved to gallery!</string>
+    <string name="batch_back_home">Back to Home</string>
+
+    <!-- Enhancement loading -->
+    <string name="enhance_loading">Enhancing your photo</string>
+    <string name="enhance_loading_dots">Enhancing your photo…</string>
+
+    <!-- Share -->
+    <string name="share_title">Share to…</string>
+    <string name="share_image">Share Image</string>
+    <string name="share_instagram">Instagram Feed</string>
+    <string name="share_instagram_stories">Instagram Stories</string>
+    <string name="share_whatsapp">WhatsApp</string>
+    <string name="share_enhanced_photos">Share Enhanced Photos</string>
+
+    <!-- Subscription -->
+    <string name="subscription_title">Subscription</string>
+    <string name="subscription_upgrade">Upgrade to Pro</string>
+    <string name="subscription_restore">Restore Purchases</string>
+    <string name="subscription_billing_soon">Google Play Billing coming soon</string>
+    <string name="subscription_restore_soon">Restore coming soon</string>
+    <string name="subscription_current">Current</string>
+
+    <!-- Profile / Settings -->
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="profile_about">About App</string>
+    <string name="profile_privacy">Privacy Policy</string>
+    <string name="profile_terms">Terms of Service</string>
+    <string name="profile_rate">Rate Us</string>
+    <string name="profile_server_mode">Use AI Cloud Enhancement (coming soon)</string>
+    <string name="profile_server_description">Server-side processing will enable unlimited styles and dynamic backgrounds. Currently using on-device mode.</string>
+    <string name="profile_beta">BETA</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_app_name">AI Food Enhancer</string>
+    <string name="about_description">Enhance your food photos with AI-powered background replacement and style enhancement. Powered by on-device U²-Net segmentation.</string>
+    <string name="about_credits">Built with Jetpack Compose, TensorFlow Lite, CameraX, and Material3.</string>
+    <string name="about_version">Version %1$s</string>
+
+    <!-- Privacy -->
+    <string name="privacy_title">Privacy Policy</string>
+    <string name="privacy_placeholder">PLACEHOLDER — This privacy policy will be replaced before release.\n\nAI Food Enhancer (\"the App\") respects your privacy. This policy describes how we collect, use, and protect your information.\n\n1. DATA COLLECTION\nThe App processes images entirely on your device using on-device AI models. No images are transmitted to external servers. We do not collect, store, or share your photos.\n\n2. CAMERA AND STORAGE\nThe App requires camera access to capture food photos and storage access to save enhanced images to your gallery. These permissions are used solely for the stated purposes.\n\n3. ANALYTICS\nWe may collect anonymous usage statistics (such as feature usage counts) to improve the App. No personally identifiable information is collected.\n\n4. THIRD-PARTY SERVICES\nThe App uses TensorFlow Lite for on-device image processing. No data is sent to Google or TensorFlow servers.\n\n5. DATA RETENTION\nEnhanced images are stored locally on your device. Processing history is kept in a local database and can be cleared at any time.\n\n6. CHANGES\nWe may update this policy from time to time. Changes will be posted within the App.\n\n7. CONTACT\nFor questions about this privacy policy, contact us at privacy@foodenhancer.com.</string>
+
+    <!-- Terms -->
+    <string name="terms_title">Terms of Service</string>
+    <string name="terms_placeholder">PLACEHOLDER — These terms will be replaced before release.\n\n1. ACCEPTANCE\nBy using AI Food Enhancer (\"the App\"), you agree to these Terms of Service.\n\n2. LICENSE\nWe grant you a limited, non-exclusive, non-transferable license to use the App for personal, non-commercial purposes.\n\n3. DEMO LIMITATIONS\nThe free version includes 5 enhancement uses with a watermark overlay. Pro subscription removes these limitations.\n\n4. SUBSCRIPTIONS\nPro features require a paid subscription. Payments are processed through Google Play. You may cancel at any time through your Google Play account settings.\n\n5. INTELLECTUAL PROPERTY\nThe App, including its AI models, design, and code, is protected by intellectual property laws.\n\n6. DISCLAIMER\nThe App is provided \"as is\" without warranties. We are not responsible for the quality of AI-enhanced images or their suitability for any particular purpose.\n\n7. LIMITATION OF LIABILITY\nTo the maximum extent permitted by law, we shall not be liable for any indirect, incidental, or consequential damages.\n\n8. MODIFICATIONS\nWe reserve the right to modify these terms at any time.\n\n9. GOVERNING LAW\nThese terms are governed by applicable law.\n\nLast updated: 2024</string>
+
+    <!-- History -->
+    <string name="history_title">History</string>
+    <string name="history_empty">No enhanced photos yet</string>
+</resources>

@@ -73,6 +73,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.foodenhancer.app.R
 import com.foodenhancer.app.ui.theme.Primary
 import com.foodenhancer.app.ui.viewmodel.HomeViewModel
 import java.io.File
@@ -223,11 +224,39 @@ fun HomeScreen(
                         .background(Color(0xFF1E1E1E)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Camera permission required",
-                        color = Color.White,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.CameraAlt,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f),
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = context.getString(R.string.error_camera_unavailable),
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Primary)
+                                .clickable { galleryLauncher.launch("image/*") }
+                                .padding(horizontal = 32.dp, vertical = 14.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.PhotoLibrary, contentDescription = null, tint = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Open Gallery", color = Color.White, fontWeight = FontWeight.SemiBold)
+                            }
+                        }
+                    }
                 }
             }
 

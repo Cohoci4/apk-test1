@@ -9,6 +9,9 @@ object Routes {
     const val SUBSCRIPTION = "subscription"
     const val BATCH_STYLE = "batch_style"
     const val BATCH_RESULT = "batch_result"
+    const val ABOUT = "about"
+    const val PRIVACY = "privacy"
+    const val TERMS = "terms"
 
     fun stylePicker(imageUri: String) = "style_picker/$imageUri"
     fun cropRotate(imageUri: String, styleId: String) = "crop/$imageUri/$styleId"
