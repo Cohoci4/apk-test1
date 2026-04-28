@@ -15,8 +15,10 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,12 +33,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -73,15 +80,18 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onImageSelected: (String) -> Unit,
     onHistoryItemClick: (String, String, String) -> Unit,
+    onBatchDone: (List<String>) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val remainingDemo by viewModel.remainingDemo.collectAsState()
     val recentHistory by viewModel.recentHistory.collectAsState()
+    val isBatchMode by viewModel.isBatchMode.collectAsState()
+    val batchPhotos by viewModel.batchPhotos.collectAsState()
     val context = LocalContext.current
 
     var hasCameraPermission by remember { mutableStateOf(false) }
@@ -97,8 +107,12 @@ fun HomeScreen(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val encoded = Uri.encode(it.toString())
-            onImageSelected(encoded)
+            if (isBatchMode) {
+                viewModel.addBatchPhoto(it)
+            } else {
+                val encoded = Uri.encode(it.toString())
+                onImageSelected(encoded)
+            }
         }
     }
 
@@ -112,6 +126,47 @@ fun HomeScreen(
         }
     }
 
+    fun capturePhoto() {
+        val capture = imageCapture
+        if (capture != null) {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val picturesDir = File(context.getExternalFilesDir(null), "Pictures")
+            picturesDir.mkdirs()
+            val photoFile = File(picturesDir, "IMG_${timeStamp}_${System.nanoTime()}.jpg")
+            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+            capture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                        val uri = FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            photoFile
+                        )
+                        if (isBatchMode) {
+                            viewModel.addBatchPhoto(uri)
+                        } else {
+                            val encoded = Uri.encode(uri.toString())
+                            onImageSelected(encoded)
+                        }
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        if (!isBatchMode) {
+                            val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
+                            onImageSelected(encoded)
+                        }
+                    }
+                }
+            )
+        } else if (!isBatchMode) {
+            val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
+            onImageSelected(encoded)
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = {
@@ -122,6 +177,21 @@ fun HomeScreen(
                 )
             },
             actions = {
+                FilterChip(
+                    selected = isBatchMode,
+                    onClick = { viewModel.toggleBatchMode() },
+                    label = {
+                        Text(
+                            text = if (isBatchMode) "Batch" else "Single",
+                            fontSize = 12.sp
+                        )
+                    },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary.copy(alpha = 0.2f)
+                    ),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+
                 Box(
                     modifier = Modifier
                         .padding(end = 12.dp)
@@ -136,9 +206,7 @@ fun HomeScreen(
                     )
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.White
-            )
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
         )
 
         Box(
@@ -187,50 +255,102 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.width(32.dp))
 
-                PulsingCaptureButton(
-                    onClick = {
-                        val capture = imageCapture
-                        if (capture != null) {
-                            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                            val picturesDir = File(context.getExternalFilesDir(null), "Pictures")
-                            picturesDir.mkdirs()
-                            val photoFile = File(picturesDir, "IMG_$timeStamp.jpg")
-                            val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-                            capture.takePicture(
-                                outputOptions,
-                                ContextCompat.getMainExecutor(context),
-                                object : ImageCapture.OnImageSavedCallback {
-                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                                        val uri = FileProvider.getUriForFile(
-                                            context,
-                                            "${context.packageName}.fileprovider",
-                                            photoFile
-                                        )
-                                        val encoded = Uri.encode(uri.toString())
-                                        onImageSelected(encoded)
-                                    }
-
-                                    override fun onError(exception: ImageCaptureException) {
-                                        // Fallback to placeholder
-                                        val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
-                                        onImageSelected(encoded)
-                                    }
-                                }
+                if (isBatchMode) {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp)
+                            .clip(CircleShape)
+                            .background(Primary)
+                            .clickable { capturePhoto() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                Icons.Filled.CameraAlt,
+                                contentDescription = "Add Photo",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
                             )
-                        } else {
-                            val encoded = Uri.encode("file:///android_asset/sample_original.jpg")
-                            onImageSelected(encoded)
+                            Text(
+                                text = "${batchPhotos.size}/10",
+                                color = Color.White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
-                )
+                } else {
+                    PulsingCaptureButton(onClick = { capturePhoto() })
+                }
 
                 Spacer(modifier = Modifier.width(32.dp))
-                Spacer(modifier = Modifier.size(56.dp))
+
+                if (isBatchMode && batchPhotos.isNotEmpty()) {
+                    IconButton(
+                        onClick = { onBatchDone(batchPhotos) },
+                        modifier = Modifier
+                            .size(56.dp)
+                            .background(Primary, CircleShape)
+                    ) {
+                        Icon(
+                            Icons.Filled.Done,
+                            contentDescription = "Done",
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(56.dp))
+                }
             }
         }
 
-        if (recentHistory.isNotEmpty()) {
+        if (isBatchMode && batchPhotos.isNotEmpty()) {
+            Text(
+                text = "Batch Queue (${batchPhotos.size}/10) — long press to remove",
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
+            )
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.height(80.dp)
+            ) {
+                itemsIndexed(batchPhotos) { index, uri ->
+                    Box {
+                        AsyncImage(
+                            model = Uri.parse(uri),
+                            contentDescription = "Batch photo ${index + 1}",
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .combinedClickable(
+                                    onClick = {},
+                                    onLongClick = { viewModel.removeBatchPhoto(index) }
+                                ),
+                            contentScale = ContentScale.Crop
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(2.dp)
+                                .size(20.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                .clickable { viewModel.removeBatchPhoto(index) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.Close,
+                                contentDescription = "Remove",
+                                tint = Color.White,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        } else if (recentHistory.isNotEmpty()) {
             Text(
                 text = "Recent",
                 style = MaterialTheme.typography.labelLarge,

@@ -36,6 +36,7 @@ data class StylePickerUiState(
     val resultOriginalUri: String? = null,
     val resultProcessedUri: String? = null,
     val resultStyleName: String? = null,
+    val navigateToCrop: String? = null,
     val error: String? = null
 )
 
@@ -98,6 +99,15 @@ class StylePickerViewModel @Inject constructor(
         viewModelScope.launch {
             styleRepository.toggleFavorite(styleId)
         }
+    }
+
+    fun onNext() {
+        val selectedId = _uiState.value.selectedStyleId ?: return
+        _uiState.value = _uiState.value.copy(navigateToCrop = selectedId)
+    }
+
+    fun onCropNavigated() {
+        _uiState.value = _uiState.value.copy(navigateToCrop = null)
     }
 
     fun onEnhance() {

@@ -1,6 +1,7 @@
 package com.foodenhancer.app.ui.screen
 
 import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -73,12 +74,21 @@ import com.foodenhancer.domain.model.EnhancementStyle
 @Composable
 fun StylePickerScreen(
     onNavigateToResult: (String, String, String) -> Unit,
+    onNavigateToCrop: (String, String) -> Unit,
     onBack: () -> Unit,
     viewModel: StylePickerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val categoriesWithStyles by viewModel.categoriesWithStyles.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
+
+    LaunchedEffect(uiState.navigateToCrop) {
+        val styleId = uiState.navigateToCrop
+        if (styleId != null) {
+            onNavigateToCrop(Uri.encode(viewModel.imageUri), Uri.encode(styleId))
+            viewModel.onCropNavigated()
+        }
+    }
 
     LaunchedEffect(uiState.resultOriginalUri) {
         val original = uiState.resultOriginalUri
@@ -121,7 +131,7 @@ fun StylePickerScreen(
             }
 
             Button(
-                onClick = { viewModel.onEnhance() },
+                onClick = { viewModel.onNext() },
                 enabled = uiState.selectedStyleId != null && !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -142,7 +152,7 @@ fun StylePickerScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Enhance",
+                        text = "Next",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
