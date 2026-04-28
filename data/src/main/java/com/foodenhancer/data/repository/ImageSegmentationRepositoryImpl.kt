@@ -2,7 +2,7 @@ package com.foodenhancer.data.repository
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import com.foodenhancer.core_ml.ImageSegmenter
+import com.foodenhancer.core_ml.FoodSegmenter
 import com.foodenhancer.domain.repository.ImageSegmentationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +10,7 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 class ImageSegmentationRepositoryImpl @Inject constructor(
-    private val imageSegmenter: ImageSegmenter
+    private val foodSegmenter: FoodSegmenter
 ) : ImageSegmentationRepository {
 
     override suspend fun segment(image: ByteArray): Result<ByteArray> {
@@ -19,7 +19,7 @@ class ImageSegmentationRepositoryImpl @Inject constructor(
                 val bitmap = BitmapFactory.decodeByteArray(image, 0, image.size)
                     ?: return@withContext Result.failure(Exception("Failed to decode image"))
 
-                val maskBitmap = imageSegmenter.segment(bitmap)
+                val maskBitmap = foodSegmenter.segment(bitmap)
 
                 val outputStream = ByteArrayOutputStream()
                 maskBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
